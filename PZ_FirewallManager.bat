@@ -1,10 +1,10 @@
 @echo off
 setlocal EnableDelayedExpansion
-title Project Zomboid Firewall Manager
+title PZ Firewall Manager
 
 net session >nul 2>&1
 if %errorlevel% NEQ 0 (
-    echo ERROR: Run as Administrator.
+    echo ERROR: Run this script as Administrator.
     pause
     exit /b 1
 )
@@ -45,10 +45,67 @@ pause
 goto MENU
 
 :CLOSE
-echo Removing named PZ firewall rules...
+echo Removing named firewall rules...
 for /L %%P in (16261,1,16272) do (
     netsh advfirewall firewall delete rule name="PZ UDP %%P" >nul
 )
 
 netsh advfirewall firewall delete rule name="PZ Steam 8766 UDP" >nul
-netsh advfirewall firewa
+netsh advfirewall firewall delete rule name="PZ Steam 8767 UDP" >nul
+
+echo Done.
+pause
+goto MENU
+
+:CHECK
+cls
+echo ======================================
+echo   PZ Firewall Manager  by  Glytch3r
+echo ======================================
+echo.
+echo Checking UDP ports 16261-16272:
+echo.
+
+for /L %%P in (16261,1,16272) do (
+    netsh advfirewall firewall show rule name="PZ UDP %%P" >nul 2>&1
+    if !errorlevel! EQU 0 (
+        echo UDP %%P : FOUND
+    ) else (
+        echo UDP %%P : NOT FOUND
+    )
+)
+
+echo.
+netsh advfirewall firewall show rule name="PZ Steam 8766 UDP" >nul 2>&1
+if %errorlevel% EQU 0 (
+    echo UDP 8766 : FOUND
+) else (
+    echo UDP 8766 : NOT FOUND
+)
+
+netsh advfirewall firewall show rule name="PZ Steam 8767 UDP" >nul 2>&1
+if %errorlevel% EQU 0 (
+    echo UDP 8767 : FOUND
+) else (
+    echo UDP 8767 : NOT FOUND
+)
+
+pause
+goto MENU
+
+:NUCLEAR
+echo WARNING:
+echo This will delete ALL firewall rules using PZ ports.
+echo.
+pause
+
+for /L %%P in (16261,1,16272) do (
+    netsh advfirewall firewall delete rule protocol=UDP localport=%%P >nul
+)
+
+netsh advfirewall firewall delete rule protocol=UDP localport=8766 >nul
+netsh advfirewall firewall delete rule protocol=UDP localport=8767 >nul
+
+echo Done.
+pause
+goto MENU
